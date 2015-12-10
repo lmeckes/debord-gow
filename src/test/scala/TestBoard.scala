@@ -8,4 +8,9 @@ class TestBoard extends FlatSpec with Matchers {
     board.printCurrentBoard
   }
 
+  "Initial Units" should "be well placed" in {
+    val board = new Board()
+    board.printCurrentBoard
+  }
+
 }
