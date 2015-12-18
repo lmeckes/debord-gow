@@ -13,6 +13,8 @@ import javafx.stage.Stage
 
 import com.lms.gow.model._
 
+import scala.util.Random
+
 class App extends Application {
 
   val boardModel = new Board
@@ -38,17 +40,30 @@ class App extends Application {
 
       val canvas = new Canvas(tileSize, tileSize)
       val gc = canvas.getGraphicsContext2D()
+      if (Random.nextBoolean())
+        canvas.setScaleX(-1)
       canvas.setLayoutX(x * tileSize)
       canvas.setLayoutY(y * tileSize)
       boardPane.getChildren().add(canvas)
 
       def drawTile(t: Tile): Unit = {
         if (!t.eq(VoidTile)) {
-          val tileImage = new Image(t.char.toString + ".png")
+
+          val tileImage = new Image("tiles/" + t.char.toString + ".png")
           gc.drawImage(tileImage, 0, 0, tileSize, tileSize)
 
-          if (Seq(Arsenal, Relay, SwiftRelay).contains(t)) {
-            // Draw lines of communication
+          // Draw color bar
+          if (t.isUnit) {
+            if (t.isPlayer1)
+              gc.setFill(Color.BLUE)
+            else
+              gc.setFill(Color.RED)
+            gc.fillRect(0, tileSize - tileSize / 15, tileSize, tileSize / 15)
+          }
+
+          // Draw lines of communication
+          if (t.isCom) {
+
           }
 
         }
@@ -73,9 +88,9 @@ class App extends Application {
 
     val board = createBoardPane
     val e = new PerspectiveTransform()
-    e.setUlx(tileSize*2)
+    e.setUlx(tileSize * 2)
     e.setUly(0)
-    e.setUrx(width - tileSize*2)
+    e.setUrx(width - tileSize * 2)
     e.setUry(0)
     e.setLlx(0)
     e.setLly(height)
