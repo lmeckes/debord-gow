@@ -1,4 +1,4 @@
-package main.scala.com.lms.gow
+package com.lms.gow.model
 
 case class Tile(char: Char, speed: Int, range: Int, attack: Int, defense: Int)
 
@@ -40,19 +40,17 @@ class Board {
   var currentUnits = startingUnits
 
   def getTile(x: Int, y: Int): (Tile, Tile) = {
-    val coord = x + (y * terrainWidth)
+    val coord = (x + (y * terrainWidth))
     (startingTerrain(coord), startingUnits(coord))
   }
 
   def printCurrentBoard {
-
     for (tile <- currentUnits.zipWithIndex) {
       val t = tile._1.char
       print(s"$t  ")
       if ((tile._2 + 1) % terrainWidth == 0)
         print("\n")
     }
-
   }
 
 }

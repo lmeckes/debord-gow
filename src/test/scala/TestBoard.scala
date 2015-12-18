@@ -1,4 +1,4 @@
-import main.scala.com.lms.gow.{VoidTile, Board}
+import com.lms.gow.model.{VoidTile, Board}
 import org.scalatest._
 
 class TestBoard extends FlatSpec with Matchers {
