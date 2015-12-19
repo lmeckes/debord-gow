@@ -22,65 +22,80 @@ object BlueSwiftRelay       extends Tile('e', 2, 0, 0, 1, true, true, true)
 object BlueInfantry         extends Tile('i', 1, 2, 4, 6, true, false, true)
 object BlueCavalry          extends Tile('v', 2, 2, 4, 5, true, false, true)
 
-class Board {
+import Util._
 
-  object Config {
-    val terrainTiles = Seq(Fortress, Mountain, MountainPass)
-    val unitTiles = Seq(BlueCannon, BlueSwiftCannon, BlueRelay, BlueSwiftRelay, BlueInfantry, BlueCavalry, BlueArsenal,
-      RedCannon, RedSwiftCannon, RedRelay, RedSwiftRelay, RedInfantry, RedCavalry, RedArsenal)
-    val attacksPerTurn = 1
-    val movesPerTurn = 5
-    val terrainWidth = 25
-    val terrainHeight = 20
-    val startingTerrain =
-      scala.io.Source.fromFile("src/main/resources/init.board")
-        .mkString
-        .filter(_ > ' ')
-        .map((terrainTiles.map(_.char) zip terrainTiles).toMap.get(_).getOrElse(VoidTile))
-    val startingUnits =
-      scala.io.Source.fromFile("src/main/resources/init.units")
-        .mkString
-        .filter(_ > ' ')
-        .map((unitTiles.map(_.char) zip unitTiles).toMap.get(_).getOrElse(VoidTile))
+object Rules {
+
+  val attacksPerTurn = 1
+  val movesPerTurn = 5
+  val terrainWidth = 25
+  val terrainHeight = 20
+
+  val terrainTiles = Seq(Fortress, Mountain, MountainPass)
+  val unitTiles = Seq(BlueCannon, BlueSwiftCannon, BlueRelay, BlueSwiftRelay, BlueInfantry, BlueCavalry, BlueArsenal,
+    RedCannon, RedSwiftCannon, RedRelay, RedSwiftRelay, RedInfantry, RedCavalry, RedArsenal)
+
+  val startingTerrain = loadTiles("src/main/resources/init.board", terrainTiles)
+  val startingUnits = loadTiles("src/main/resources/init.units", unitTiles)
+}
+
+object Util {
+
+  def indexFromCoordinates(x: Int, y: Int) = (x + (y * Rules.terrainWidth))
+
+  def loadTiles(file: String, tileRef: Seq[Tile]): Seq[Tile] = {
+    scala.io.Source.fromFile(file)
+      .mkString
+      .filter(_ > ' ')
+      .map((tileRef.map(_.char) zip tileRef)
+        .toMap
+        .get(_)
+        .getOrElse(VoidTile))
   }
 
+}
 
-  // Current Game
+class Board {
+
   var player1Turn = true
-  var leftMoves = Config.movesPerTurn
-  var currentUnits = Config.startingUnits.zipWithIndex.map(_.swap).toMap
+  var leftMoves = Rules.movesPerTurn
+  var currentUnits = Rules.startingUnits.zipWithIndex.map(_.swap).toMap
 
   def move(x: Int, y: Int, newX: Int, newY: Int): Boolean = {
 
-    val srcCoord = (x + (y * Config.terrainWidth))
-    val dstCoord = (newX + (newY * Config.terrainWidth))
+    val srcCoord = indexFromCoordinates(x, y)
+    val dstCoord = indexFromCoordinates(newX, newY)
     val unit = currentUnits.get(srcCoord).getOrElse(VoidTile)
-    val dst = currentUnits.get(dstCoord).getOrElse(VoidTile)
+    val dstUnit = currentUnits.get(dstCoord).getOrElse(VoidTile)
+    val dstTerrain = Rules.startingTerrain(dstCoord)
 
-    if (unit.isPlayer1 == player1Turn && dst.equals(VoidTile) && leftMoves > 0) {
-      leftMoves = leftMoves - 1
-      if (leftMoves == 0) {
-        leftMoves = Config.movesPerTurn
-        player1Turn = !player1Turn
-      }
-      currentUnits += srcCoord -> VoidTile
-      currentUnits += dstCoord -> unit
-      return true
+    if (unit.isPlayer1 == player1Turn
+      && dstUnit.equals(VoidTile)
+      && !dstTerrain.equals(Mountain)
+      && leftMoves > 0) {
+        leftMoves = leftMoves - 1
+        if (leftMoves == 0) {
+          leftMoves = Rules.movesPerTurn
+          player1Turn = !player1Turn
+        }
+        currentUnits += srcCoord -> VoidTile
+        currentUnits += dstCoord -> unit
+        return true
     } else {
       return false
     }
   }
 
   def getTile(x: Int, y: Int): (Tile, Tile) = {
-    val coord = (x + (y * Config.terrainWidth))
-    (Config.startingTerrain(coord), currentUnits(coord))
+    val coord = indexFromCoordinates(x, y)
+    (Rules.startingTerrain(coord), currentUnits(coord))
   }
 
   def dump {
     for (tile <- currentUnits) {
       val t = tile._2
       print(s"$t  ")
-      if ((tile._1 + 1) % Config.terrainWidth == 0)
+      if ((tile._1 + 1) % Rules.terrainWidth == 0)
         print("\n")
     }
   }

@@ -19,8 +19,8 @@ class App extends Application {
 
   val model = new Board
   val tileSize = 50
-  val width = tileSize * model.Config.terrainWidth
-  val height = tileSize * model.Config.terrainHeight
+  val width = tileSize * Rules.terrainWidth
+  val height = tileSize * Rules.terrainHeight
 
   def createBoardPane = {
 
@@ -86,15 +86,15 @@ class App extends Application {
 
     }
 
-    (0 until model.Config.terrainWidth).foreach(x => {
-      (0 until model.Config.terrainHeight).foreach(y => {
+    (0 until Rules.terrainWidth).foreach(x => {
+      (0 until Rules.terrainHeight).foreach(y => {
         createTileSquare(x, y)
 
       })
     })
 
-    (0 until model.Config.terrainWidth).foreach(x => {
-      (0 until model.Config.terrainHeight).foreach(y => {
+    (0 until Rules.terrainWidth).foreach(x => {
+      (0 until Rules.terrainHeight).foreach(y => {
         createTile(x, y)
       })
     })
