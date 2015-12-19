@@ -17,10 +17,10 @@ import scala.util.Random
 
 class App extends Application {
 
-  val boardModel = new Board
+  val model = new Board
   val tileSize = 50
-  val width = tileSize * boardModel.terrainWidth
-  val height = tileSize * boardModel.terrainHeight
+  val width = tileSize * model.Config.terrainWidth
+  val height = tileSize * model.Config.terrainHeight
 
   def createBoardPane = {
 
@@ -63,20 +63,38 @@ class App extends Application {
 
           // Draw lines of communication
           if (t.isCom) {
+            val canvas2 = new Canvas(width, height)
+            val gc2 = canvas2.getGraphicsContext2D
+            if (t.isPlayer1)
+              gc2.setStroke(Color.BLUE)
+            else
+              gc2.setStroke(Color.RED)
 
+            val tileCenter = (x * tileSize + tileSize / 2, y * tileSize + tileSize / 2)
+
+            gc2.strokeLine(tileCenter._1, 0, tileCenter._1, height)
+            gc2.strokeLine(0, tileCenter._2, width, tileCenter._2)
+
+            boardPane.getChildren().add(canvas2)
           }
 
         }
       }
 
-      drawTile(boardModel.getTile(x, y)._1)
-      drawTile(boardModel.getTile(x, y)._2)
+      drawTile(model.getTile(x, y)._1)
+      drawTile(model.getTile(x, y)._2)
 
     }
 
-    (0 until boardModel.terrainWidth).foreach(x => {
-      (0 until boardModel.terrainHeight).foreach(y => {
+    (0 until model.Config.terrainWidth).foreach(x => {
+      (0 until model.Config.terrainHeight).foreach(y => {
         createTileSquare(x, y)
+
+      })
+    })
+
+    (0 until model.Config.terrainWidth).foreach(x => {
+      (0 until model.Config.terrainHeight).foreach(y => {
         createTile(x, y)
       })
     })
@@ -85,6 +103,8 @@ class App extends Application {
   }
 
   def start(stage: Stage) {
+
+    model.move(14, 10, 13, 10)
 
     val board = createBoardPane
     val e = new PerspectiveTransform()
