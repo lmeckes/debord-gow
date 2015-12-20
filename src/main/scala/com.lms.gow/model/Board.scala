@@ -1,7 +1,7 @@
 package com.lms.gow.model
 
 abstract case class Tile(char: Char, speed: Int, range: Int, attack: Int,
-                         defense: Int, isUnit: Boolean, isCom: Boolean, isPlayer1: Boolean)
+                         defense: Int, isUnit: Boolean, isCom: Boolean, isBlue: Boolean)
 object VoidTile extends Tile('.', 0, 0, 0, 0, false, false, false)
 object Fortress extends Tile('F', 0, 0, 0, 4, false, false, false)
 object Mountain extends Tile('M', 0, 0, 0, 0, false, false, false)
@@ -70,8 +70,8 @@ class Board {
 
   val terrainLayer = Rules.startingTerrain
   var unitLayer = Rules.startingUnits.zipWithIndex.map(_.swap).toMap
-  val comLayerRed : Seq[mutable.Set[Direction]] = Seq.fill(Rules.totalTiles)(mutable.Set[Direction]())
-  val comLayerBlue : Seq[mutable.Set[Direction]] = Seq.fill(Rules.totalTiles)(mutable.Set[Direction]())
+  val comLayerRed = Seq.fill(Rules.totalTiles)(mutable.Set[Direction]())
+  val comLayerBlue = Seq.fill(Rules.totalTiles)(mutable.Set[Direction]())
 
   var player1Turn = true
   var leftMoves = Rules.movesPerTurn
@@ -80,43 +80,59 @@ class Board {
 
   def refreshComLayer = {
 
-    comLayerRed.foreach(d => d.clear)
-    comLayerBlue.foreach(d => d.clear)
-
+    comLayerRed.foreach(_.clear)
+    comLayerBlue.foreach(_.clear)
     unitLayer.filter(u => u._2.eq(RedArsenal) || u._2.eq(BlueArsenal))
       .map(propagateCom(_))
 
     def propagateCom(source: (Int, Tile)): Unit = {
 
+      val index = source._1
+      val isBlue = source._2.isBlue
+
+      if (isBlue)
+        comLayerBlue(index) ++= Rules.directions
+      else
+        comLayerRed(index) ++= Rules.directions
+
       Rules.directions.foreach(dir => {
-
+        var pos = index
         var doRun = true
-        var index = source._1
-
         while (doRun) {
-          index += dir.x + (dir.y * Rules.terrainWidth)
-          if (index % Rules.terrainWidth < 1 || !(0 until Rules.totalTiles).contains(index)
-            || !shouldPropagateCom(source._2.isPlayer1, terrainLayer(index), unitLayer(index))) {
+          pos += dir.x + (dir.y * Rules.terrainWidth)
+          if (shouldBreakCom(pos, isBlue)) {
             doRun = false
           } else {
-            if (source._2.isPlayer1) {
-              comLayerBlue(index) += dir
-            } else {
-              comLayerRed(index) += dir
-            }
+            if (isBlue)
+              comLayerBlue(pos) += dir
+            else
+              comLayerRed(pos) += dir
+
+            val shouldRelay =
+              (Seq(BlueRelay, BlueSwiftRelay, RedRelay, RedSwiftRelay).contains(unitLayer(pos))
+                && unitLayer(pos).isBlue.equals(isBlue)
+                && comLayerBlue(pos).size < Rules.directions.size && comLayerRed(pos).size < Rules.directions.size)
+            if (shouldRelay)
+              propagateCom(pos, unitLayer(pos))
+
           }
         }
       })
 
-      def shouldPropagateCom(player1: Boolean, terrain: Tile, unit: Tile): Boolean = {
-        if (terrain == Mountain ||
-          (Rules.unitTilesRepository.contains(unit)
-            && unit.isPlayer1 != player1))
-          false
-        else
+      def shouldBreakCom(pos : Int, isBlue: Boolean): Boolean = {
+        if (pos % Rules.terrainWidth < 1 || !(0 until Rules.totalTiles).contains(pos))
           true
+        else {
+          val terrain = terrainLayer(pos)
+          val unit = unitLayer(pos)
+          if (terrain == Mountain ||
+          (Rules.unitTilesRepository.contains(unit)
+            && unit.isBlue != isBlue))
+          true
+        else
+          false
+        }
       }
-
     }
 
   }
@@ -133,7 +149,7 @@ class Board {
     val dstUnit = unitLayer.get(dstCoord).getOrElse(VoidTile)
     val dstTerrain = Rules.startingTerrain(dstCoord)
 
-    if (unit.isPlayer1 == player1Turn
+    if (unit.isBlue == player1Turn
       && dstUnit.equals(VoidTile)
       && !dstTerrain.equals(Mountain)
       && leftMoves > 0) {

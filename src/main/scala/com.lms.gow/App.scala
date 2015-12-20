@@ -27,6 +27,8 @@ class App extends Application {
 
     model.move(14, 10, 13, 10)
 
+    model.move(22, 14, 23, 14)
+
     val board = createBoardPane
     setPerspective(board)
     val scene = new Scene(board, Color.WHITESMOKE)
@@ -124,7 +126,7 @@ class App extends Application {
 
         // Draw color bar
         if (t.isUnit) {
-          if (t.isPlayer1)
+          if (t.isBlue)
             gc.setFill(Color.BLUE)
           else
             gc.setFill(Color.RED)
