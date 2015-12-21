@@ -53,7 +53,6 @@ object Util {
   def indexFromCoordinates(x: Int, y: Int) = (x + (y * Rules.terrainWidth))
 
   //def coordinatesFromIndex(x: Int): (Int, Int) = (x % Rules.terrainWidth, x / Rules.terrainWidth)
-
   def loadTilesFromFile(file: String, tileRepository: Seq[Tile]): Seq[Tile] = {
     io.Source.fromFile(file)
       .mkString
@@ -140,6 +139,15 @@ class Board {
   def getUnitTile(x: Int, y: Int) = unitLayer(indexFromCoordinates(x, y))
   def getTerrainTile(x: Int, y: Int) = terrainLayer(indexFromCoordinates(x, y))
   def getComTile(x: Int, y: Int) = (comLayerRed(indexFromCoordinates(x, y)), comLayerBlue(indexFromCoordinates(x, y)))
+  def hasCom(x: Int, y:Int) = {
+    val unit = unitLayer(indexFromCoordinates(x, y))
+    if (unit.eq(VoidTile))
+      false
+    else if (unit.isBlue)
+      getComTile(x, y)._2.size > 0
+    else
+      getComTile(x, y)._1.size > 0
+  }
 
   def move(x: Int, y: Int, newX: Int, newY: Int): Boolean = {
 

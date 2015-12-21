@@ -26,7 +26,6 @@ class App extends Application {
   def start(stage: Stage) {
 
     model.move(14, 10, 13, 10)
-
     model.move(22, 14, 23, 14)
 
     val board = createBoardPane
@@ -60,25 +59,63 @@ class App extends Application {
       }
       boardPane.getChildren().add(tileSquare)
 
-      val canvas = new Canvas(tileSize, tileSize)
-      val gc = canvas.getGraphicsContext2D
+      val terrainCanvas = new Canvas(tileSize, tileSize)
+      val terrainGc = terrainCanvas.getGraphicsContext2D
       if (Random.nextBoolean())
-        canvas.setScaleX(-1)
-      canvas.setLayoutX(x * tileSize)
-      canvas.setLayoutY(y * tileSize)
-      boardPane.getChildren().add(canvas)
+        terrainCanvas.setScaleX(-1)
+      terrainCanvas.setLayoutX(x * tileSize)
+      terrainCanvas.setLayoutY(y * tileSize)
+      boardPane.getChildren().add(terrainCanvas)
 
-      drawTile(model.getTerrainTile(x, y), gc)
-      drawTile(model.getUnitTile(x, y), gc)
+      drawTerrainTile(x, y, terrainGc)
 
-      val canvas2 = new Canvas(tileSize, tileSize)
-      val gc2 = canvas2.getGraphicsContext2D
-      canvas2.setLayoutX(x * tileSize)
-      canvas2.setLayoutY(y * tileSize)
-      boardPane.getChildren().add(canvas2)
+      val unitCanvas = new Canvas(tileSize, tileSize)
+      val unitGc = unitCanvas.getGraphicsContext2D
+      if (Random.nextBoolean())
+        unitCanvas.setScaleX(-1)
+      unitCanvas.setLayoutX(x * tileSize)
+      unitCanvas.setLayoutY(y * tileSize)
+      boardPane.getChildren().add(unitCanvas)
 
-      drawCom(model.getComTile(x, y), gc2)
+      drawUnitTile(x, y, unitGc)
 
+      val comCanvas = new Canvas(tileSize, tileSize)
+      val comGc = comCanvas.getGraphicsContext2D
+      comCanvas.setLayoutX(x * tileSize)
+      comCanvas.setLayoutY(y * tileSize)
+      boardPane.getChildren().add(comCanvas)
+
+      drawCom(model.getComTile(x, y), comGc)
+
+    }
+
+    def drawTerrainTile(x: Int, y: Int, gc: GraphicsContext): Unit = {
+      val t = model.getTerrainTile(x, y)
+      if (!t.eq(VoidTile)) {
+        val tileImage = new Image("tiles/" + t.char.toString + ".png")
+        gc.drawImage(tileImage, 0, 0, tileSize, tileSize)
+      }
+    }
+
+    def drawUnitTile(x: Int, y: Int, gc: GraphicsContext): Unit = {
+
+      val t = model.getUnitTile(x, y)
+
+      if (!t.eq(VoidTile)) {
+
+        if (!model.hasCom(x, y))
+          gc.setGlobalAlpha(0.3)
+
+        val tileImage = new Image("tiles/" + t.char.toString + ".png")
+        gc.drawImage(tileImage, 0, 0, tileSize, tileSize)
+
+        if (t.isBlue)
+          gc.setFill(Color.BLUE)
+        else
+          gc.setFill(Color.RED)
+        gc.fillRect(0, tileSize - tileSize / 15, tileSize, tileSize / 15)
+
+      }
     }
 
     def drawCom(c: (mutable.Set[Direction], mutable.Set[Direction]), gc: GraphicsContext): Unit = {
@@ -116,24 +153,6 @@ class App extends Application {
       doDraw(blue)
       gc.stroke
 
-    }
-
-    def drawTile(t: Tile, gc: GraphicsContext): Unit = {
-      if (!t.eq(VoidTile)) {
-
-        val tileImage = new Image("tiles/" + t.char.toString + ".png")
-        gc.drawImage(tileImage, 0, 0, tileSize, tileSize)
-
-        // Draw color bar
-        if (t.isUnit) {
-          if (t.isBlue)
-            gc.setFill(Color.BLUE)
-          else
-            gc.setFill(Color.RED)
-          gc.fillRect(0, tileSize - tileSize / 15, tileSize, tileSize / 15)
-        }
-
-      }
     }
 
     // Draw Terrain
