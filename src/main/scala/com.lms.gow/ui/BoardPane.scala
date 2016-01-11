@@ -13,7 +13,7 @@ import com.lms.gow.model._
 import scala.collection.mutable
 import scala.util.Random
 
-class Board(g: Game) extends Pane {
+class BoardPane(g: Game) extends Pane {
 
   val tileSize = 50
   val width = tileSize * Rules.terrainWidth
@@ -21,11 +21,7 @@ class Board(g: Game) extends Pane {
 
   private def tileImage(t: Tile) = new Image("tiles/" + t.char.toString + ".png")
 
-  val terrainImages = g.terrainLayer
-    .filterNot(_.eq(VoidTile))
-    .map(t => (t.char, tileImage(t))).toMap
-
-  val unitImages = g.unitLayer
+  val images = (g.terrainLayer ++ g.unitLayer)
     .filterNot(_.eq(VoidTile))
     .map(t => (t.char, tileImage(t))).toMap
 
@@ -79,7 +75,7 @@ class Board(g: Game) extends Pane {
   def drawTerrainTile(x: Int, y: Int, gc: GraphicsContext): Unit = {
     val t = query.getTerrainTile(x, y)
     if (!t.eq(VoidTile)) {
-      gc.drawImage(terrainImages(t.char), 0, 0, tileSize, tileSize)
+      gc.drawImage(images(t.char), 0, 0, tileSize, tileSize)
     }
   }
 
@@ -90,7 +86,7 @@ class Board(g: Game) extends Pane {
     if (!t.eq(VoidTile)) {
       if (!query.isUnitOnline(x, y))
         gc.setGlobalAlpha(0.3)
-      gc.drawImage(unitImages(t.char), 0, 0, tileSize, tileSize)
+      gc.drawImage(images(t.char), 0, 0, tileSize, tileSize)
 
       gc.setGlobalAlpha(1)
       if (t.isBlue)
