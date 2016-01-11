@@ -1,5 +1,7 @@
 package com.lms.gow.ui
 
+import javafx.beans
+import javafx.beans.InvalidationListener
 import javafx.event.EventHandler
 import javafx.scene.canvas.{Canvas, GraphicsContext}
 import javafx.scene.image.Image
@@ -15,7 +17,8 @@ import scala.util.Random
 
 class BoardPane(g: Game) extends Pane {
 
-  val tileSize = 50
+  def tileSize = 50
+
   val width = tileSize * Rules.terrainWidth
   val height = tileSize * Rules.terrainHeight
 
@@ -201,5 +204,14 @@ class BoardPane(g: Game) extends Pane {
   }
 
   scanBoardCoordinates(drawTileLayers)
+
+  val listener = new InvalidationListener {
+    override def invalidated(o: beans.Observable) {
+      scanBoardCoordinates(drawTileLayers)
+    }
+  }
+  widthProperty addListener (listener);
+  heightProperty addListener (listener);
+
 
 }

@@ -35,9 +35,10 @@ class Game {
 
       refreshComLayer
 
-      true
-    } else
-      false
+      return true
+    }
+
+    return false
   }
 
   def refreshComLayer = {
@@ -61,43 +62,46 @@ class Game {
 
       Rules.directions.foreach(dir => {
         var pos = index
-        var doRun = true
-        while (doRun) {
+
+        while (shouldPropagateCom(pos, dir, isBlue)) {
+
           pos += dir.x + (dir.y * Rules.terrainWidth)
 
-          if (shouldBreakCom(pos, isBlue)) {
-            doRun = false
-          } else {
+          if (isBlue)
+            comLayerBlue(pos) += dir
+          else
+            comLayerRed(pos) += dir
 
-            if (isBlue)
-              comLayerBlue(pos) += dir
-            else
-              comLayerRed(pos) += dir
-
-            if (Seq(BlueRelay, BlueSwiftRelay, RedRelay, RedSwiftRelay)
-              .contains(unitLayer(pos))
+          if (
+            Seq(BlueRelay, BlueSwiftRelay, RedRelay, RedSwiftRelay).contains(unitLayer(pos))
               && unitLayer(pos).isBlue.equals(isBlue)
               && comLayerBlue(pos).size < Rules.directions.size
               && comLayerRed(pos).size < Rules.directions.size)
-                propagateCom(unitLayer(pos), pos)
-
-          }
+            propagateCom(unitLayer(pos), pos)
         }
+
       })
 
-      def shouldBreakCom(pos: Int, isBlue: Boolean): Boolean = {
-        if (pos % Rules.terrainWidth < 1 || !(0 until Rules.totalTiles).contains(pos))
+      def shouldPropagateCom(pos: Int, dir: Direction, isBlue: Boolean): Boolean = {
+
+        if ((Seq(E, NE, SE) contains dir) && (pos % Rules.terrainWidth == Rules.terrainWidth - 1))
+          return false
+
+        if ((Seq(W, NW, SW) contains dir) && (pos % Rules.terrainWidth == 0))
+          return false
+
+        val npos = pos + dir.x + (dir.y * Rules.terrainWidth)
+
+        if (!(0 until Rules.totalTiles).contains(npos))
+          return false
+
+        val unit = unitLayer(npos)
+        if (terrainLayer(npos) == Mountain ||
+          (Rules.unitTilesRepository.contains(unit)
+            && unit.isBlue != isBlue))
+          false
+        else
           true
-        else {
-          val terrain = terrainLayer(pos)
-          val unit = unitLayer(pos)
-          if (terrain == Mountain ||
-            (Rules.unitTilesRepository.contains(unit)
-              && unit.isBlue != isBlue))
-            true
-          else
-            false
-        }
       }
     }
 
