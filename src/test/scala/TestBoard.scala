@@ -1,15 +1,11 @@
-import com.lms.gow.model.{Rules, VoidTile, Board}
+import com.lms.gow.model.{Rules, VoidTile, Tile, Game}
+import Tile._
 import org.scalatest._
 
 class TestBoard extends FlatSpec with Matchers {
 
-  "Board" should "print" in {
-    val board = new Board()
-    board.dump
-  }
-
   "Initial Units" should "be well placed" in {
-    val board = new Board()
+    val board = new Game()
     val topUnit = Rules.startingUnits.take((Rules.terrainWidth * Rules.terrainHeight) / 2)
     val bottomUnit = Rules.startingUnits.reverse.take((Rules.terrainWidth * Rules.terrainHeight) / 2)
 
